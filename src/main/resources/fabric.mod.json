@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "athagnelutils",
+  "version": "${version}",
+  "name": "AthAgnelUtils",
+  "description": "Авто-реконект, авто-логин /l, авто-капча помощник, авто-хаб (компас -> Анархия), CapsLock-майнер с guard кирки. Автор: AtheriumDev.",
+  "authors": ["AtheriumDev"],
+  "contact": {
+    "homepage": "https://atheriumdev.com",
+    "sources": "https://atheriumdev.com"
+  },
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "main": ["ua.atherium.agnelutils.AthAgnelUtils"],
+    "client": ["ua.atherium.agnelutils.client.AthAgnelUtilsClient"]
+  },
+  "mixins": [
+    "athagnelutils.mixins.json",
+    {
+      "config": "athagnelutils.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2-",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

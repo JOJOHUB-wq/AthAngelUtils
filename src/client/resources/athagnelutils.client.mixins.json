@@ -1,0 +1,9 @@
+{
+  "required": false,
+  "package": "ua.atherium.agnelutils.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
