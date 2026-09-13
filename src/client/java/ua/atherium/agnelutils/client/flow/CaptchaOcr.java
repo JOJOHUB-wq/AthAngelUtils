@@ -79,10 +79,10 @@ public final class CaptchaOcr {
         for (int i = 0; i < chars.length(); i++) {
             char label = chars.charAt(i);
             loadTemplateResource(cl, label + ".png", label);
-            for (int v = 0; v < 10; v++) {
-                if (!loadTemplateResource(cl, label + "_" + v + ".png", label)) {
-                    break;
-                }
+            // 20 слотів і без break — додаткові шаблони (новий шрифт) лежать на індексах 10+,
+            // тож пропуски в нумерації більше не зупиняють завантаження.
+            for (int v = 0; v < 20; v++) {
+                loadTemplateResource(cl, label + "_" + v + ".png", label);
             }
         }
     }
@@ -954,6 +954,21 @@ public final class CaptchaOcr {
     static float[][] normalize(BufferedImage img) {
         int w = img.getWidth();
         int h = img.getHeight();
+        // Полярність шрифту мінялась між версіями сервера: старі капчі — білі цифри на
+        // темних плитках, нові — темні цифри на світлих. Авто-визначаємо, який колір є
+        // чорнилом (меншість у габариті), щоб шаблони й нейронка бачили однаковий вхід.
+        boolean[][] light = new boolean[h][w];
+        int lightCount = 0;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int v = img.getRGB(x, y) & 0xFF;
+                light[y][x] = v > 128;
+                if (light[y][x]) {
+                    lightCount++;
+                }
+            }
+        }
+        boolean inkIsLight = lightCount * 2 <= w * h; // чорнило = меншість
         boolean[][] ink = new boolean[h][w];
         int x0 = w;
         int y0 = h;
@@ -961,9 +976,8 @@ public final class CaptchaOcr {
         int y1 = -1;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                int v = img.getRGB(x, y) & 0xFF;
-                if (v > 128) {
-                    ink[y][x] = true;
+                ink[y][x] = inkIsLight ? light[y][x] : !light[y][x];
+                if (ink[y][x]) {
                     if (x < x0) {
                         x0 = x;
                     }

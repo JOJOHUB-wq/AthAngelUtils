@@ -29,6 +29,9 @@ public final class ReconnectState {
         if (disconnectAtMs == 0 || now - disconnectAtMs > 90_000) {
             this.fails = 0;
         }
+        // Успішний вхід = кінець серії: скидаємо лічильник спроб, щоб наступний кік
+        // стартував з базової затримки, а не з роздутого бек-офу минулої серії.
+        this.attempts = 0;
         this.disconnectAtMs = 0;
         this.manualDisconnect = false;
         this.reasonLogged = false;
@@ -74,15 +77,12 @@ public final class ReconnectState {
     }
 
     private boolean banned() {
-        return lastReason.contains("ban") || lastReason.contains("бан")
-            || lastReason.contains("заблок") || lastReason.contains("blacklist")
-            || lastReason.contains("чорн");
+        return ReconnectPolicy.isBanReason(lastReason);
     }
 
     public synchronized long delayMs() {
         var cfg = ConfigStore.get();
-        long d = cfg.reconnectBaseDelaySec * 1000L * (1L << Math.min(attempts, 6));
-        return Math.min(d, cfg.reconnectMaxDelaySec * 1000L);
+        return ReconnectPolicy.delayMs(attempts, cfg.reconnectBaseDelaySec, cfg.reconnectMaxDelaySec);
     }
 
     public synchronized boolean shouldReconnect(Minecraft client) {
@@ -129,7 +129,7 @@ public final class ReconnectState {
                 return false;
             }
         }
-        if (fails >= cfg.reconnectMaxFails) {
+        if (ReconnectPolicy.shouldPause(fails, cfg.reconnectMaxFails)) {
             stopped = true;
             stoppedAtMs = System.currentTimeMillis();
             Msg.title("§cСервер не приймає (" + fails + " провалів) — пауза 30 хв. /agnel recon щоб зараз");

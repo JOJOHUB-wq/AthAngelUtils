@@ -17,6 +17,8 @@ public final class ChatText {
         if (s == null) {
             return "";
         }
-        return s.toLowerCase().replaceAll("§.", "").replaceAll("[§&]#[0-9a-fA-F]{6}", "");
+        // Спершу прибираємо шестизначні hex-кольори (§#a1b2c3 / &#a1b2c3), а ПОТІМ одиночні
+        // §-коди. Інакше "§." зʼїдає '§#' і лишає сміття 'a1b2c3', яке ламає пошук ключових слів.
+        return s.toLowerCase().replaceAll("[§&]#[0-9a-fA-F]{6}", "").replaceAll("§.", "");
     }
 }
