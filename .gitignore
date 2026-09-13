@@ -1,2 +1,6 @@
 build/
 .gradle/
+# sandbox/tooling
+.pytools/
+*.pyc
+__pycache__/
